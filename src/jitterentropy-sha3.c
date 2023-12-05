@@ -265,7 +265,7 @@ void sha3_256_init(struct sha_ctx *ctx)
 	sha3_init(ctx);
 	ctx->r = SHA3_256_SIZE_BLOCK;
 	ctx->rword = SHA3_256_SIZE_BLOCK / sizeof(uint64_t);
-	ctx->digestsize = SHA3_256_SIZE_DIGEST;
+	ctx->digestsize = HASH_256_SIZE_DIGEST;
 }
 
 static inline void sha3_fill_state(struct sha_ctx *ctx, const uint8_t *in)
@@ -367,14 +367,14 @@ int sha3_tester(void)
 					   0x43, 0x86, 0x8C, 0xC4, 0x0E, 0xC5,
 					   0x5E, 0x00, 0xBB, 0xBB, 0xBD, 0xF5,
 					   0x91, 0x1E };
-	uint8_t act[SHA3_256_SIZE_DIGEST] = { 0 };
+	uint8_t act[HASH_256_SIZE_DIGEST] = { 0 };
 	unsigned int i;
 
 	sha3_256_init(&ctx);
 	sha3_update(&ctx, msg_256, 3);
 	sha3_final(&ctx, act);
 
-	for (i = 0; i < SHA3_256_SIZE_DIGEST; i++) {
+	for (i = 0; i < HASH_256_SIZE_DIGEST; i++) {
 		if (exp_256[i] != act[i])
 			return 1;
 	}

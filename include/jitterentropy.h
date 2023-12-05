@@ -86,7 +86,7 @@ extern "C" {
 /*
  * Shall the LAG predictor health test be enabled?
  */
-#define JENT_HEALTH_LAG_PREDICTOR
+//#define JENT_HEALTH_LAG_PREDICTOR
 
 /*
  * Shall the jent_memaccess use a (statistically) random selection for the
@@ -100,8 +100,10 @@ extern "C" {
 
 #include "jitterentropy-base-user.h"
 
-#define SHA3_256_SIZE_DIGEST_BITS	256
-#define SHA3_256_SIZE_DIGEST		(SHA3_256_SIZE_DIGEST_BITS >> 3)
+#define HASH_256_SIZE_DIGEST_BITS	256 
+#define HASH_256_SIZE_DIGEST		(HASH_256_SIZE_DIGEST_BITS >> 3) 
+#define MODE_SHA3 1
+#define MODE_SM3 2
 
 /*
  * The output 256 bits can receive more than 256 bits of min entropy,
@@ -177,15 +179,16 @@ struct jent_notime_thread {
 };
 
 /* The entropy pool */
-struct rand_data
+typedef struct rand_data
 {
 	/* all data values that are vital to maintain the security
 	 * of the RNG are marked as SENSITIVE. A user must not
 	 * access that information while the RNG executes its loops to
 	 * calculate the next random value. */
 	void *hash_state;		/* SENSITIVE hash state entropy pool */
+	unsigned int hash_mode;			/* hash cipher */
 	uint64_t prev_time;		/* SENSITIVE Previous time stamp */
-#define DATA_SIZE_BITS (SHA3_256_SIZE_DIGEST_BITS)
+#define DATA_SIZE_BITS (HASH_256_SIZE_DIGEST_BITS)
 
 #ifndef JENT_HEALTH_LAG_PREDICTOR
 	uint64_t last_delta;		/* SENSITIVE stuck test */
@@ -244,7 +247,7 @@ struct rand_data
 	unsigned int health_failure;	/* Permanent health failure */
 
 	unsigned int apt_base_set:1;	/* APT base reference set? */
-	unsigned int fips_enabled:1;
+	unsigned int fips_enabled:1;//:1表示这个变量只能有0和1两种情况
 	unsigned int enable_notime:1;	/* Use internal high-res timer */
 	unsigned int max_mem_set:1;	/* Maximum memory configured by user */
 
@@ -368,12 +371,14 @@ struct rand_data
 /* get raw entropy */
 JENT_PRIVATE_STATIC
 ssize_t jent_read_entropy(struct rand_data *ec, char *data, size_t len);
+#ifdef JENT_HEALTH_LAG_PREDICTOR
 JENT_PRIVATE_STATIC
 ssize_t jent_read_entropy_safe(struct rand_data **ec, char *data, size_t len);
+#endif
 /* initialize an instance of the entropy collector */
 JENT_PRIVATE_STATIC
 struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
-	       				       unsigned int flags);
+	       				       unsigned int flags, unsigned int hash_mode );
 /* clearing of entropy collector */
 JENT_PRIVATE_STATIC
 void jent_entropy_collector_free(struct rand_data *entropy_collector);
@@ -382,7 +387,7 @@ void jent_entropy_collector_free(struct rand_data *entropy_collector);
 JENT_PRIVATE_STATIC
 int jent_entropy_init(void);
 JENT_PRIVATE_STATIC
-int jent_entropy_init_ex(unsigned int osr, unsigned int flags);
+int jent_entropy_init_ex(unsigned int osr, unsigned int flags, unsigned int hash_mode);
 
 /*
  * Set a callback to run on health failure in FIPS mode.

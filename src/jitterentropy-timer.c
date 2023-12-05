@@ -39,7 +39,7 @@ int jent_notime_init(void **ctx)
 	if (ncpu < 2)
 		return -EOPNOTSUPP;
 
-	thread_ctx = calloc(1, sizeof(struct jent_notime_ctx));
+	thread_ctx = calloc(1, sizeof(struct jent_notime_ctx));//分配线程空间和线程上下文
 	if (!thread_ctx)
 		return -errno;
 
@@ -58,7 +58,7 @@ void jent_notime_fini(void *ctx)
 }
 
 static int jent_notime_start(void *ctx,
-			     void *(*start_routine) (void *), void *arg)
+			     void *(*start_routine) (void *), void *arg)//分配线程开始执行start_routine
 {
 	struct jent_notime_ctx *thread_ctx = (struct jent_notime_ctx *)ctx;
 	int ret;
@@ -84,10 +84,10 @@ static void jent_notime_stop(void *ctx)
 }
 
 static struct jent_notime_thread jent_notime_thread_builtin = {
-	.jent_notime_init  = jent_notime_init,
-	.jent_notime_fini  = jent_notime_fini,
-	.jent_notime_start = jent_notime_start,
-	.jent_notime_stop  = jent_notime_stop
+	.jent_notime_init  = jent_notime_init,//初始化空间
+	.jent_notime_fini  = jent_notime_fini,//free空间
+	.jent_notime_start = jent_notime_start,//创建线程，开始循环计数
+	.jent_notime_stop  = jent_notime_stop//结束线程
 };
 
 /***************************************************************************
@@ -106,8 +106,8 @@ void jent_notime_block_switch(void)
 	jent_notime_switch_blocked = 1;
 }
 
+//把函数封装到指针jent_notime_thread_builtin里面，然后让这个指针指向jent_notime_thread_builtin
 static struct jent_notime_thread *notime_thread = &jent_notime_thread_builtin;
-
 /**
  * Timer-replacement loop
  *
@@ -115,7 +115,7 @@ static struct jent_notime_thread *notime_thread = &jent_notime_thread_builtin;
  * counter function. It conceptually acts as the low resolution
  * samples timer from a ring oscillator.
  */
-static void *jent_notime_sample_timer(void *arg)
+static void *jent_notime_sample_timer(void *arg)//在线程里面进行while循环计数，充当高精度时间戳
 {
 	struct rand_data *ec = (struct rand_data *)arg;
 
@@ -140,7 +140,7 @@ static void *jent_notime_sample_timer(void *arg)
  */
 int jent_notime_settick(struct rand_data *ec)
 {
-	if (!ec->enable_notime || !notime_thread)
+	if (!ec->enable_notime || !notime_thread)//两个都没有说明是DISABLE_INTERNAL直接不用测试
 		return 0;
 
 	ec->notime_interrupt = 0;
@@ -148,7 +148,7 @@ int jent_notime_settick(struct rand_data *ec)
 	ec->notime_timer = 0;
 
 	return notime_thread->jent_notime_start(ec->notime_thread_ctx,
-					       jent_notime_sample_timer, ec);
+					       jent_notime_sample_timer, ec);//创建线程并开始执行计数
 }
 
 void jent_notime_unsettick(struct rand_data *ec)
@@ -173,19 +173,19 @@ void jent_get_nstime_internal(struct rand_data *ec, uint64_t *out)
 		 * of an uint64_t should be atomic anyway.
 		 */
 		while (ec->notime_timer == ec->notime_prev_timer)
-			jent_yield();
+			jent_yield();//如果线程中的计数还是和前一个计数一样的话，报错，因为此时一定已经开启线程里面的计数循环了
 
 		ec->notime_prev_timer = ec->notime_timer;
-		*out = ec->notime_prev_timer;
+		*out = ec->notime_prev_timer;//输出计数，每次输出计数都会更新一下之前输出的记录
 	} else {
-		jent_get_nstime(out);
+		jent_get_nstime(out);//如果没有enable说明不是使用软件自带的时间戳，返回系统的时间戳，放在out中
 	}
 }
 
 static inline int jent_notime_enable_thread(struct rand_data *ec)
 {
 	if (notime_thread)
-		return notime_thread->jent_notime_init(&ec->notime_thread_ctx);
+		return notime_thread->jent_notime_init(&ec->notime_thread_ctx);//用这个指针指向的初始化函数，初始化线程的ctx
 	return 0;
 }
 
@@ -198,11 +198,13 @@ void jent_notime_disable(struct rand_data *ec)
 int jent_notime_enable(struct rand_data *ec, unsigned int flags)
 {
 	/* Use internal timer */
+	//如果不用FORCE_INTERNAL可以不用测
 	if (jent_force_internal_timer || (flags & JENT_FORCE_INTERNAL_TIMER)) {
 		/* Self test not run yet */
+		//看看self test是否开启，未开启且初始化错误就直接返回错误
 		if (!jent_force_internal_timer &&
 		    jent_time_entropy_init(ec->osr,
-					   flags | JENT_FORCE_INTERNAL_TIMER))
+					   flags | JENT_FORCE_INTERNAL_TIMER, ec->hash_mode))
 			return EHEALTH;
 
 		ec->enable_notime = 1;

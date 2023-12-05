@@ -424,7 +424,7 @@ static inline void jent_get_cachesize(long *l1, long *l2, long *l3)
 #undef JENT_SYSFS_CACHE_DIR
 }
 
-# endif
+#endif
 
 static inline uint32_t jent_cache_size_roundup(void)
 {
@@ -434,7 +434,7 @@ static inline uint32_t jent_cache_size_roundup(void)
 	if (!checked) {
 		long l1 = 0, l2 = 0, l3 = 0;
 
-		jent_get_cachesize(&l1, &l2, &l3);
+		jent_get_cachesize(&l1, &l2, &l3);//取一级到三级的缓存大小
 		checked = 1;
 
 		/* Cache size reported by system */
@@ -444,17 +444,16 @@ static inline uint32_t jent_cache_size_roundup(void)
 			cache_size += (uint32_t)l2;
 		if (l3 > 0)
 			cache_size += (uint32_t)l3;
-
 		/*
 		 * Force the output_size to be of the form
 		 * (bounding_power_of_2 - 1).
 		 */
+		//1的最高位开始，将右边全部转为1，这样就变成了离cache_size最近，但是比它大的(2^n)-1
 		cache_size |= (cache_size >> 1);
 		cache_size |= (cache_size >> 2);
 		cache_size |= (cache_size >> 4);
 		cache_size |= (cache_size >> 8);
 		cache_size |= (cache_size >> 16);
-
 		if (cache_size == 0)
 			return 0;
 
@@ -462,7 +461,7 @@ static inline uint32_t jent_cache_size_roundup(void)
 		 * Make the output_size the smallest power of 2 strictly
 		 * greater than cache_size.
 		 */
-		cache_size++;
+		cache_size++;//加1变成离cache_size最近的，但是比它大的2^n
 	}
 
 	return cache_size;

@@ -27,6 +27,11 @@ static uint64_t jent_common_timer_gcd = 0;
 
 static inline int jent_gcd_tested(void)
 {
+	/*
+		if(jent_common_timer_gcd == 0)
+			return 0;
+		else return 1;	
+	*/
 	return (jent_common_timer_gcd != 0);
 }
 
@@ -64,7 +69,7 @@ static int jent_gcd_analyze_internal(uint64_t *delta_history, size_t nelem,
 	if (!delta_history)
 		return -EAGAIN;
 
-	running_gcd = delta_history[0];
+	running_gcd = delta_history[0];//取第一个数
 
 	/* Now perform the analysis on the accumulated delta data. */
 	for (i = 1; i < nelem; i++) {
@@ -74,7 +79,7 @@ static int jent_gcd_analyze_internal(uint64_t *delta_history, size_t nelem,
 		 * only after the first loop is executed as we need to prime
 		 * the old_data value
 		 */
-		if (delta_history[i] >= delta_history[i - 1])
+		if (delta_history[i] >= delta_history[i - 1])//统计增量记录之间的差值，越大越好？
 			delta_sum +=  delta_history[i] - delta_history[i - 1];
 		else
 			delta_sum +=  delta_history[i - 1] - delta_history[i];
@@ -87,7 +92,7 @@ static int jent_gcd_analyze_internal(uint64_t *delta_history, size_t nelem,
 		 * This code checks for such increments, and allows the library
 		 * to output the number of such changes have occurred.
 		 */
-		running_gcd = jent_gcd64(delta_history[i], running_gcd);
+		running_gcd = jent_gcd64(delta_history[i], running_gcd);//计算最大公因子
 	}
 
 	*running_gcd_out = running_gcd;
@@ -100,7 +105,7 @@ int jent_gcd_analyze(uint64_t *delta_history, size_t nelem)
 {
 	uint64_t running_gcd, delta_sum;
 	int ret = jent_gcd_analyze_internal(delta_history, nelem, &running_gcd,
-					    &delta_sum);
+					    &delta_sum);//running_gcd是最大公因子，delta_sum是这些时间增量之间的差值总和
 
 	if (ret == -EAGAIN)
 		return 0;
@@ -110,18 +115,19 @@ int jent_gcd_analyze(uint64_t *delta_history, size_t nelem)
 	 * ensure the entropy estimation implied with 1 is preserved.
 	 */
 	if (delta_sum <= nelem - 1) {
-		ret = EMINVARVAR;
+		ret = EMINVARVAR;//时间增量的偏差太少了
 		goto out;
 	}
 
 	/* Set a sensible maximum value. */
 	if (running_gcd >= UINT32_MAX / 2) {
+		//?最大公因子太大了，说明时间增量太有规律了都是某个数的倍数，说明这些增量对应随机数生成来说太粗糙了，不过这个对比的数值是不是太大了
 		ret = ECOARSETIME;
 		goto out;
 	}
 
 	/*  Adjust all deltas by the observed (small) common factor. */
-	if (!jent_gcd_tested())
+	if (!jent_gcd_tested())//当jent_common_timer_gcd为0就赋值
 		jent_common_timer_gcd = running_gcd;
 
 out:
@@ -148,6 +154,7 @@ void jent_gcd_fini(uint64_t *delta_history, size_t nelem)
 
 int jent_gcd_get(uint64_t *value)
 {
+	//如果jent_common_timer_gcd已经有值了就赋值，没值就返回1
 	if (!jent_gcd_tested())
 		return 1;
 
@@ -159,22 +166,22 @@ int jent_gcd_selftest(void)
 {
 #define JENT_GCD_SELFTEST_ELEM 10
 #define JENT_GCD_SELFTEST_EXP 3ULL
-	uint64_t *gcd = jent_gcd_init(JENT_GCD_SELFTEST_ELEM);
+	uint64_t *gcd = jent_gcd_init(JENT_GCD_SELFTEST_ELEM);//10个64bit
 	uint64_t running_gcd, delta_sum;
 	unsigned int i;
-	int ret = EGCD;
+	int ret = EGCD;//如果返回这个，就是selftest失败
 
 	if (!gcd)
-		return EMEM;
+		return EMEM;//分配空间错误
 
 	for (i = 0; i < JENT_GCD_SELFTEST_ELEM; i++)
-		jent_gcd_add_value(gcd, i * JENT_GCD_SELFTEST_EXP, i);
+		jent_gcd_add_value(gcd, i * JENT_GCD_SELFTEST_EXP, i);//把i*3放进数组中
 
 	if (jent_gcd_analyze_internal(gcd, JENT_GCD_SELFTEST_ELEM,
 				      &running_gcd, &delta_sum))
 		goto out;
 
-	if (running_gcd != JENT_GCD_SELFTEST_EXP)
+	if (running_gcd != JENT_GCD_SELFTEST_EXP)//求最大公倍数，看是否正确
 		goto out;
 
 	ret = 0;

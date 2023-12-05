@@ -72,6 +72,7 @@ int jent_set_fips_failure_callback_internal(jent_fips_failure_cb cb)
  *
  * We have to iteratively look for an appropriate value for the cutoff r.
  */
+//一个全局，一个局部
 static const unsigned int jent_lag_global_cutoff_lookup[20] =
 	{ 66443,  93504, 104761, 110875, 114707, 117330, 119237, 120686, 121823,
 	 122739, 123493, 124124, 124660, 125120, 125520, 125871, 126181, 126457,
@@ -87,7 +88,7 @@ void jent_lag_init(struct rand_data *ec, unsigned int osr)
 	 * entropy rate of 1/osr.
 	 */
 	/* TODO: add permanent health failure */
-	if (osr > ARRAY_SIZE(jent_lag_global_cutoff_lookup)) {
+	if (osr > ARRAY_SIZE(jent_lag_global_cutoff_lookup)) {//如果采样率太大就取最大的
 		ec->lag_global_cutoff =
 			jent_lag_global_cutoff_lookup[
 				ARRAY_SIZE(jent_lag_global_cutoff_lookup) - 1];
@@ -236,7 +237,7 @@ static inline void jent_lag_insert(struct rand_data *ec, uint64_t current_delta)
 static inline uint64_t jent_delta2(struct rand_data *ec, uint64_t current_delta)
 {
 	uint64_t delta2 = jent_delta(ec->last_delta, current_delta);
-
+	// ec->last_delta初始为0，当小减大时会从最大值开始，增量减上次的增量
 	ec->last_delta = current_delta;
 	return delta2;
 }
@@ -244,7 +245,7 @@ static inline uint64_t jent_delta2(struct rand_data *ec, uint64_t current_delta)
 static inline uint64_t jent_delta3(struct rand_data *ec, uint64_t delta2)
 {
 	uint64_t delta3 = jent_delta(ec->last_delta2, delta2);
-
+	// ec->last_delta2初始为0，增量减上次增量的值减-上次的记录
 	ec->last_delta2 = delta2;
 	return delta3;
 }
@@ -287,7 +288,7 @@ void jent_apt_init(struct rand_data *ec, unsigned int osr)
 	 * Establish the apt_cutoff based on the presumed entropy rate of
 	 * 1/osr.
 	 */
-	if (osr >= ARRAY_SIZE(jent_apt_cutoff_lookup)) {
+	if (osr >= ARRAY_SIZE(jent_apt_cutoff_lookup)) {//如果采样率太大就取最大的
 		ec->apt_cutoff = jent_apt_cutoff_lookup[
 			ARRAY_SIZE(jent_apt_cutoff_lookup) - 1];
 		ec->apt_cutoff_permanent = jent_apt_cutoff_permanent_lookup[
@@ -335,12 +336,12 @@ static void jent_apt_reset(struct rand_data *ec)
 static void jent_apt_insert(struct rand_data *ec, uint64_t current_delta)
 {
 	/* Initialize the base reference */
-	if (!ec->apt_base_set) {
+	if (!ec->apt_base_set) {//如果apt_base_set是0就重新初始化apt
 		jent_apt_reinit(ec, current_delta, 1, 1);
 		return;
 	}
 
-	if (current_delta == ec->apt_base) {
+	if (current_delta == ec->apt_base) {//在出现了相同的熵值时触发，重复次数超出阈值就安全性不足
 		ec->apt_count++;		/* B = B + 1 */
 
 		/* Note, ec->apt_count starts with one. */
@@ -350,10 +351,10 @@ static void jent_apt_insert(struct rand_data *ec, uint64_t current_delta)
 			ec->health_failure |= JENT_APT_FAILURE;
 	}
 
-	ec->apt_observations++;
+	ec->apt_observations++;//测试次数
 
 	/* Completed one window, the next symbol input will be new apt_base. */
-	if (ec->apt_observations >= JENT_APT_WINDOW_SIZE)
+	if (ec->apt_observations >= JENT_APT_WINDOW_SIZE)//如果测试次数达到界限需要重新初始化apt
 		jent_apt_reset(ec);		/* APT Step 4 */
 }
 
@@ -408,7 +409,7 @@ static void jent_rct_insert(struct rand_data *ec, int stuck)
 		 * following SP800-90B. Thus C = ceil(-log_2(alpha)/H) = 30*osr
 		 * or 60*osr.
 		 */
-		if ((unsigned int)ec->rct_count >= (60 * ec->osr)) {
+		if ((unsigned int)ec->rct_count >= (60 * ec->osr)) {//熵值还有熵值的导数、二阶导数为0的次数太多了就会报错
 			ec->rct_count = -1;
 			ec->health_failure |= JENT_RCT_FAILURE_PERMANENT;
 		} else if ((unsigned int)ec->rct_count >= (30 * ec->osr)) {
@@ -437,24 +438,25 @@ static void jent_rct_insert(struct rand_data *ec, int stuck)
  */
 unsigned int jent_stuck(struct rand_data *ec, uint64_t current_delta)
 {
+	
 	uint64_t delta2 = jent_delta2(ec, current_delta);
 	uint64_t delta3 = jent_delta3(ec, delta2);
-
+	
 	/*
 	 * Insert the result of the comparison of two back-to-back time
 	 * deltas.
 	 */
-	jent_apt_insert(ec, current_delta);
-	jent_lag_insert(ec, current_delta);
+	jent_apt_insert(ec, current_delta);//将熵值输进去，进行重复性测试，出现太多次就不合格
+	jent_lag_insert(ec, current_delta);//默认关闭
 
-	if (!current_delta || !delta2 || !delta3) {
+	if (!current_delta || !delta2 || !delta3) {//任意一个值为0就会执行
 		/* RCT with a stuck bit */
-		jent_rct_insert(ec, 1);
+		jent_rct_insert(ec, 1);//熵值及其导数为0的次数加1，返回这个值stuck测试失败，连续失败次数超过界限就会报错
 		return 1;
 	}
 
 	/* RCT with a non-stuck bit */
-	jent_rct_insert(ec, 0);
+	jent_rct_insert(ec, 0);//只要有一次满足要求就会重置计数
 
 	return 0;
 }

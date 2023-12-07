@@ -1,5 +1,5 @@
 #include <string.h>
-#include "sm3.h"
+#include "jitterentropy/jitterentropy-sm3.h"
 
 #define cpu_to_be32(v) (((v)>>24) | (((v)>>8)&0xff00) | (((v)<<8)&0xff0000) | ((v)<<24))
 
@@ -169,7 +169,7 @@ int sm3_update(sm3_context* ctx, const unsigned char* input, size_t ilen) {
 }
 
 
-int sm3_finish(sm3_context* ctx, unsigned char output[32]) {
+int sm3_final(sm3_context* ctx, unsigned char output[32]) {
 	int i;
 	uint32_t* pdigest = (uint32_t*)output;
 	uint32_t* count = (uint32_t*)(ctx->buffer + SM3_BLOCK_SIZE - 8);
@@ -241,7 +241,7 @@ int sm3_self_test(int verbose) {
 		sm3_update(&ctx, test_buf[i], (size_t)test_buflen[i]);
 
 
-		sm3_finish(&ctx, sm3sum);
+		sm3_final(&ctx, sm3sum);
 
 		if (memcmp(sm3sum, test_sum[i], 32) != 0) {
 			if (verbose != 0)

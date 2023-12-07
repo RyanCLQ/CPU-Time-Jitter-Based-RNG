@@ -18,8 +18,8 @@
  * DAMAGE.
  */
 
-#include "jitterentropy-sha3.h"
-#include "jitterentropy.h"
+#include "jitterentropy/jitterentropy-sha3.h"
+#include "jitterentropy/jitterentropy.h"
 
 /***************************************************************************
  * Message Digest Implementation

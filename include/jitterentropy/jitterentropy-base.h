@@ -17,44 +17,21 @@
  * DAMAGE.
  */
 
-#ifndef JITTERENTROPY_HEALTH_H
-#define JITTERENTROPY_HEALTH_H
+#ifndef JITTERENTROPY_BASE_H
+#define JITTERENTROPY_BASE_H
 
-#include "jitterentropy.h"
+#include "jitterentropy/jitterentropy.h"
+#include "jitterentropy/jitterentropy-gcd.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-void jent_health_cb_block_switch(void);
-int jent_set_fips_failure_callback_internal(jent_fips_failure_cb cb);
-
-static inline uint64_t jent_delta(uint64_t prev, uint64_t next)
-{
-	return (next - prev);
-}
-
-#ifdef JENT_HEALTH_LAG_PREDICTOR
-void jent_lag_init(struct rand_data *ec, unsigned int osr);
-#else /* JENT_HEALTH_LAG_PREDICTOR */
-static inline void jent_lag_init(struct rand_data *ec, unsigned int osr)
-{
-	(void)ec;
-	(void)osr;
-}
-#endif /* JENT_HEALTH_LAG_PREDICTOR */
-
-void jent_apt_init(struct rand_data *ec, unsigned int osr);
-void jent_apt_reinit(struct rand_data *ec,
-		     uint64_t current_delta,
-		     unsigned int apt_count,
-		     unsigned int apt_observations);
-unsigned int jent_stuck(struct rand_data *ec, uint64_t current_delta);
-unsigned int jent_health_failure(struct rand_data *ec);
+    int jent_time_entropy_init(unsigned int osr, unsigned int flags, unsigned int hash_mode);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* JITTERENTROPY_HEALTH_H */
+#endif /* JITTERENTROPY_BASE_H */

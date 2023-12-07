@@ -17,42 +17,24 @@
  * DAMAGE.
  */
 
-#ifndef JITTERENTROPY_SHA3_H
-#define JITTERENTROPY_SHA3_H
+#ifndef JITTERENTROPY_NOISE_H
+#define JITTERENTROPY_NOISE_H
 
-#include "jitterentropy.h"
+#include "jitterentropy/jitterentropy.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#define SHA3_SIZE_BLOCK(bits)	((1600 - 2 * bits) >> 3)
-#define SHA3_256_SIZE_BLOCK	SHA3_SIZE_BLOCK(HASH_256_SIZE_DIGEST_BITS)
-#define SHA3_MAX_SIZE_BLOCK	SHA3_256_SIZE_BLOCK
-
-struct sha_ctx {
-	uint64_t state[25];
-	size_t msg_len;
-	unsigned int r;
-	unsigned int rword;
-	unsigned int digestsize;
-	uint8_t partial[SHA3_MAX_SIZE_BLOCK];
-};
-
-#define SHA_MAX_CTX_SIZE	(sizeof(struct sha_ctx))
-#define HASH_CTX_ON_STACK(name)						       \
-	struct sha_ctx name
-
-void sha3_256_init(struct sha_ctx *ctx);
-void sha3_update(struct sha_ctx *ctx, const uint8_t *in, size_t inlen);
-void sha3_final(struct sha_ctx *ctx, uint8_t *digest);
-int sha3_alloc(void **hash_state);
-void sha3_dealloc(void *hash_state);
-int sha3_tester(void);
+	unsigned int jent_measure_jitter(struct rand_data *ec,
+					uint64_t loop_cnt,
+					uint64_t *ret_current_delta);
+	void jent_random_data(struct rand_data *ec);
+	void jent_read_random_block(struct rand_data *ec, char *dst, size_t dst_len);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* JITTERENTROPY_SHA3_H */
+#endif /* JITTERENTROPY_NOISE_H */

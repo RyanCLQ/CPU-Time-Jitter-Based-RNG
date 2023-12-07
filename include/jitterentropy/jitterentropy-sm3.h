@@ -1,14 +1,9 @@
-/**
- * \file sm3.h
- *
- * \brief This file contains the SM3 Hashing Algorithm
- */
-#ifndef SM3_H
-#define SM3_H
+#ifndef JITTERENTROPY_SM3_H
+#define JITTERENTROPY_SM3_H
 
 #include <stddef.h>
 #include <stdint.h>
-#include "jitterentropy.h"
+#include "jitterentropy/jitterentropy.h"
 
 #define SM3_DIGEST_LENGTH    32
 #define SM3_BLOCK_SIZE       64
@@ -93,7 +88,7 @@ extern "C" {
 	  * \return         \c 0 on success.
 	  * \return         A negative error code on failure.
 	  */
-	int sm3_finish(sm3_context* ctx, unsigned char output[32]);
+	int sm3_final(sm3_context* ctx, unsigned char output[32]);
 
 	/* Internal use */
 	void sm3_process(sm3_context* ctx, const unsigned char block[64]);

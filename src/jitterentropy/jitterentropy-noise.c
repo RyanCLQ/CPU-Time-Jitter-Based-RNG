@@ -18,11 +18,11 @@
  * DAMAGE.
  */
 
-#include "jitterentropy-noise.h"
-#include "jitterentropy-health.h"
-#include "jitterentropy-timer.h"
-#include "jitterentropy-sha3.h"
-#include "sm3.h"
+#include "jitterentropy/jitterentropy-noise.h"
+#include "jitterentropy/jitterentropy-health.h"
+#include "jitterentropy/jitterentropy-timer.h"
+#include "jitterentropy/jitterentropy-sha3.h"
+#include "jitterentropy/jitterentropy-sm3.h"
 
 #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
 
@@ -195,7 +195,7 @@ static void jent_hash_time(struct rand_data *ec, uint64_t time,
 			sm3_update(&ctx,(uint8_t *) &ec->apt_base,
 					sizeof(ec->apt_base));
 			sm3_update(&ctx, (uint8_t *)&j, sizeof(uint64_t));
-			sm3_finish(&ctx, intermediary);
+			sm3_final(&ctx, intermediary);
 		}//只执行一次，可无视for循环，将当前结构体中的状态更新hash，最后把hash值输出到intermediary
 
 		/*
@@ -464,7 +464,7 @@ void jent_read_random_block(struct rand_data *ec, char *dst, size_t dst_len)
 		sha3_update(ec->hash_state, jent_block, sizeof(jent_block));//根据先前的jent_block更新hash_state的状态
 	}	
 	else if (ec->hash_mode == MODE_SM3){
-		sm3_finish(ec->hash_state, jent_block);//取出随机数给jent_block
+		sm3_final(ec->hash_state, jent_block);//取出随机数给jent_block
 		sm3_update(ec->hash_state, jent_block, sizeof(jent_block));//根据先前的jent_block更新hash_state的状态
 	}
 	if (dst_len)

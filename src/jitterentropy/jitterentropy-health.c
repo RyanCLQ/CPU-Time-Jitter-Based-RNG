@@ -19,7 +19,7 @@
  * DAMAGE.
  */
 
-#include "jitterentropy-health.h"
+#include "jitterentropy/jitterentropy-health.h"
 
 static jent_fips_failure_cb fips_cb = NULL;
 static int jent_health_cb_switch_blocked = 0;

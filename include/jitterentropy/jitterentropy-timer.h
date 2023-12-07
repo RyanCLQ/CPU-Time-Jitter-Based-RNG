@@ -17,28 +17,28 @@
  * DAMAGE.
  */
 
-#ifndef JITTERENTROPY_GCD_H
-#define JITTERENTROPY_GCD_H
+#ifndef JITTERENTROPY_TIMER_H
+#define JITTERENTROPY_TIMER_H
 
-#include "jitterentropy.h"
+#include "jitterentropy/jitterentropy.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-int jent_gcd_analyze(uint64_t *delta_history, size_t nelem);
-uint64_t *jent_gcd_init(size_t nelem);
-void jent_gcd_fini(uint64_t *delta_history, size_t nelem);
-int jent_gcd_get(uint64_t *value);
-int jent_gcd_selftest(void);
-
-/* Watch for common adjacent GCD values */
-#define jent_gcd_add_value(delta_history, delta, idx)			\
-	delta_history[idx] = delta;
+    void jent_notime_block_switch(void);
+    int jent_notime_settick(struct rand_data *ec);
+    void jent_notime_unsettick(struct rand_data *ec);
+    void jent_get_nstime_internal(struct rand_data *ec, uint64_t *out);
+    int jent_notime_enable(struct rand_data *ec, unsigned int flags);
+    void jent_notime_disable(struct rand_data *ec);
+    int jent_notime_switch(struct jent_notime_thread *new_thread);
+    void jent_notime_force(void);
+    int jent_notime_forced(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* JITTERENTROPY_GCD_H */
+#endif /* JITTERENTROPY-TIMER_H */

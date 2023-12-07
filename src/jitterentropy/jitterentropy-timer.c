@@ -18,8 +18,8 @@
  * DAMAGE.
  */
 
-#include "jitterentropy-base.h"
-#include "jitterentropy-timer.h"
+#include "jitterentropy/jitterentropy-base.h"
+#include "jitterentropy/jitterentropy-timer.h"
 
 
 /***************************************************************************

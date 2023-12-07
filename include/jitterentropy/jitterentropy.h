@@ -98,7 +98,7 @@ extern "C" {
  * Jitter RNG State Definition Section
  ***************************************************************************/
 
-#include "jitterentropy-base-user.h"
+#include "jitterentropy/jitterentropy-base-user.h"
 
 #define HASH_256_SIZE_DIGEST_BITS	256 
 #define HASH_256_SIZE_DIGEST		(HASH_256_SIZE_DIGEST_BITS >> 3) 
@@ -241,7 +241,7 @@ typedef struct rand_data
 	unsigned int apt_observations;	/* Number of collected observations in
 					 * current window. */
 	unsigned int apt_count;		/* The number of times the reference
-					 * symbol been encountered in the
+    				 * symbol been encountered in the
 					 * window. */
 	uint64_t apt_base;		/* APT base reference */
 	unsigned int health_failure;	/* Permanent health failure */

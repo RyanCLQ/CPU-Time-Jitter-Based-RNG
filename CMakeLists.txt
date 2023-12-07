@@ -12,7 +12,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
 file(COPY ${CMAKE_SOURCE_DIR}/include DESTINATION ${CMAKE_BINARY_DIR}/out)
 
 # files in library
-aux_source_directory(src rng_src)
+aux_source_directory(src/jitterentropy rng_src)
+aux_source_directory(src/ rng_src)
 
 # static library
 add_library(rng-static ${rng_src})

@@ -29,7 +29,7 @@
  * DAMAGE.
  */
 
-#include "jitterentropy-base.h"
+#include "jitterentropy/jitterentropy-base.h"
 
 #define MAJVERSION 3 /* API / ABI incompatible changes, functional changes that
 		      * require consumer to be updated (as long as this number

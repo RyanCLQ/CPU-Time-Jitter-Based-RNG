@@ -17,13 +17,13 @@ extern "C" {
         void *entropy_source;
     }entropy;
 
-    int entropy_alloc(void **pool);//todo 初始化，在这里分配空间
+    int entropy_alloc(void **pool);
 
     void entropy_dealloc(void *pool);
 
-    int entropy_init(entropy *ctx, int hash_mode);//todo 在这里初始化空间赋值0，并初始化entropy_source
+    int entropy_init(entropy *ctx, int hash_mode);
 
-    int entropy_update(entropy *ctx);//todo 使用cpu抖动熵源更新熵池
+    int entropy_update(entropy *ctx);
 
     int Get_entropy(uint8_t *buf, size_t len, int hash_mode);
     

@@ -10,6 +10,24 @@ typedef struct {
 	sm3_context sm3_ctx[2];
 } sm3_df_ctx;
 
+int sm3_rng_alloc(void **ctx)
+{
+	sm3_rng *tmp;
+	tmp = jent_zalloc(sizeof(sm3_rng));
+    if (!tmp)
+		return 1;
+	*ctx = tmp;
+
+	return 0;
+}
+
+void sm3_rng_dealloc(void *ctx)
+{
+	sm3_rng *tmp = (sm3_rng *)ctx;
+   
+    jent_zfree(ctx, sizeof(sm3_rng));
+}
+
 static void sm3_df_init(sm3_df_ctx *df_ctx)
 {
 	uint8_t counter[4] = {0, 0, 0, 1};
@@ -119,6 +137,7 @@ static void be_add(uint8_t r[55], const uint8_t *a, size_t alen)
 		r[i] = carry & 0xff;//进位后剩下的部分
 		carry >>= 8;//进位的部分
 	}
+	
 	for (; i >= 0; i--) {
 		carry += r[i];//进位加上剩下的高位的r
 		r[i] = carry & 0xff;

@@ -410,7 +410,6 @@ ssize_t jent_read_entropy_safe(struct rand_data **ec, char *data, size_t len)
 static inline uint32_t jent_memsize(unsigned int flags)
 {
 	uint32_t memsize, max_memsize;
-	printf("内存flags:%x",flags);
 	max_memsize = JENT_FLAGS_TO_MAX_MEMSIZE(flags);//int是2的32次方，根据flags的值确定最大内存空间
 
 	if (max_memsize == 0) {
@@ -419,7 +418,6 @@ static inline uint32_t jent_memsize(unsigned int flags)
 		max_memsize = UINT32_C(1) << (max_memsize +
 					      JENT_MAX_MEMSIZE_OFFSET);
 	}
-	printf("\nmax_memsize:%x \n",max_memsize);
 	/* Allocate memory for adding variations based on memory access */
 	memsize = jent_cache_size_roundup();
 	
@@ -611,7 +609,6 @@ void jent_entropy_collector_free(struct rand_data *entropy_collector)
 int jent_time_entropy_init(unsigned int osr, unsigned int flags,
 					 unsigned int hash_mode)
 {
-	printf("\nflags:%d\n",flags);
 	struct rand_data *ec;
 	uint64_t *delta_history;
 	int i, time_backwards = 0, count_stuck = 0, ret = 0;
@@ -647,7 +644,6 @@ int jent_time_entropy_init(unsigned int osr, unsigned int flags,
 		ret = EMEM;
 		goto out;
 	}
-	printf("apt: %x %x %x\n",ec->apt_base,ec->apt_base_set,ec->fips_enabled);
 	/* To initialize the prior time. */
 	jent_measure_jitter(ec, 0, NULL);//! 测量CPU抖动的熵值，调用这个函数但是不使用ec中hash_state的结果可以对上一个时间戳进行初始化
 	//在这个函数中获取正在循环的计数器中的数
@@ -665,7 +661,7 @@ int jent_time_entropy_init(unsigned int osr, unsigned int flags,
 	 * timer.
 	 */
 #define CLEARCACHE 100
-	for (i = -CLEARCACHE; i < JENT_POWERUP_TESTLOOPCOUNT; i++) {//todo
+	for (i = -CLEARCACHE; i < JENT_POWERUP_TESTLOOPCOUNT; i++) {
 		uint64_t start_time = 0, end_time = 0, delta = 0;
 		unsigned int stuck;
 
@@ -805,7 +801,6 @@ int jent_entropy_init_ex(unsigned int osr, unsigned int flags,
 		return ret;
 
 	ret = ENOTIME;
-	printf("\nflags:%d\n",flags);
 	/* Test without internal timer unless caller does not want it */
 	//如果不是强制软件高精度时间戳，测试系统自带的高精度时间戳
 	if (!(flags & JENT_FORCE_INTERNAL_TIMER)){

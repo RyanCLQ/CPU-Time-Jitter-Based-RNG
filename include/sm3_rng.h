@@ -20,7 +20,7 @@ extern "C" {
         time_t last_reseed_time;
     } sm3_rng;
 
-    int sm3_rng_alloc(void **ctx);//todo 初始化，在这里分配空间
+    int sm3_rng_alloc(void **ctx);
 
     void sm3_rng_dealloc(void *ctx);
 

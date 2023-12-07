@@ -3,6 +3,7 @@ CPU Time Jitter Based RNG
 基于CPU抖动的随机数生成器
 
 **参照标准：GMT 0105-2021 软件随机数发生器设计指南**
+
 **本库的实现参考了https://github.com/smuellerDD/jitterentropy-library**
 
 本库通过计算高精度时间戳间的差值，收集执行SHA3-256/SM3和随机内存读取时的CPU抖动作为熵源，并参照标准设计对应的熵池与基于SM3随机数发生器。
